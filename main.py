@@ -4,9 +4,10 @@ from tabulate import tabulate
 
 wordCount = {}
 wordSet = set()
-nonAlphanumericRegex = re.compile(r"^\W+|\W+$")
+nonAlphanumericRegex = re.compile(r"^[\W_]+|[\W_]+$")
 
-
+# Goes through each of the predefined words,
+# adds them to a set (with given text case) as well as a counter dict (with lowercase keys)
 def readPredefinedWords(predefinedWordsFile):
     try:
         with open(predefinedWordsFile, 'r') as file:
@@ -18,7 +19,7 @@ def readPredefinedWords(predefinedWordsFile):
         print(err)
         exit(1)
 
-
+# Helper method to process each line in the given input file
 def processLine(line):
     words = line.split(" ")
     for word in words:
@@ -27,7 +28,7 @@ def processLine(line):
         if word in wordCount:
             wordCount[word] += 1
 
-
+# Helper method to read the given input file
 def processInputFile(fileName):
     try:
         with open(fileName, 'r') as file:
@@ -37,14 +38,23 @@ def processInputFile(fileName):
         print(err)
         exit(1)
 
+# The main entrypoint
+def main():
+    readPredefinedWords(sys.argv[1])
+    processInputFile(sys.argv[2])
+    sortedWordSet = sorted(wordSet, key=lambda x: wordCount[x.lower()], reverse=True)
+    output = []
+    for word in sortedWordSet:
+        if wordCount[word.lower()] == 0:
+            break
+        output.append([word, wordCount[word.lower()]])
 
-readPredefinedWords(sys.argv[1])
-processInputFile(sys.argv[2])
-sortedWordSet = sorted(wordSet, key=lambda x: wordCount[x.lower()], reverse=True)
-output = []
-for word in sortedWordSet:
-    if wordCount[word.lower()] == 0:
-        break
-    output.append([word, wordCount[word.lower()]])
+    tabulated = tabulate(output, headers=['Predefined word', 'Match count'], tablefmt="simple_grid")
+    print(tabulated)
+    
+    output = open("output.txt", "w")
+    output.write(tabulated)
+    output.close()
 
-print(tabulate(output, headers=['Predefined word', 'Match count'], tablefmt="simple_grid"))
+if __name__ == '__main__':
+    main()
